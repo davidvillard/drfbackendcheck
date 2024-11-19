@@ -93,18 +93,19 @@ def verify_email(request,user_email):
     response_data = response.json() # Recojo el JSON de la respuesta
     valid = response_data.get('valid') # Recojo el valor de valid dentro del JSON
     smtp_status = response_data.get('smtp-status') # Recojo el valor de smtp-status dentro del JSON
-    domain = response_data.get('domain') # Recojo el valor de domain dentro del JSON
+    email = response_data.get('email') # Recojo el valor de domain dentro del JSON
     print(f"Estado del SMTP: {smtp_status}, Validación: {valid}")  # Muestra los valores de 'smtp-status' y 'valid'
     
     if smtp_status == "invalid" and valid == False:
-        status_message = "Ha ocurrido un error y no se ha podido verificar el email"
+        status_message = "El email no es seguro"
     elif smtp_status == "ok" and valid == True: 
         status_message = "El Email es seguro"
     elif smtp_status == "ok" and valid == False: 
         status_message = "El Email no es seguro"  
     elif smtp_status == "invalid" and valid == True:
         status_message = "El Email no es seguro" 
-    elif domain == "":
+    
+    if not '@' in email:
         status_message = "Ha ocurrido un error y no se ha podido verificar el email"
     
 

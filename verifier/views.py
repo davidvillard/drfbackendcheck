@@ -49,7 +49,6 @@ class UrlViewSet(viewsets.ModelViewSet):
             url_obj.message #Esto muestra un texto diciendo si la url es valida o no
         })
 
-    
 class EmailViewSet(viewsets.ModelViewSet):
     queryset = Email.objects.all()
     serializer_class = EmailSerializer
@@ -72,9 +71,9 @@ class EmailViewSet(viewsets.ModelViewSet):
         # smtp_response = 'ha ocurrido un error y no se ha podido verificar el email' in validation_message.lower()
         
         if is_valid:
-            status_message = "el email es seguro"
+            status_message = "El email es seguro"
         else:
-            status_message = "el email no es seguro"
+            status_message = "El email no es seguro"
         
         is_error = validation_message.lower()
         if is_error == "ha ocurrido un error y no se ha podido verificar el email":
@@ -91,8 +90,7 @@ class EmailViewSet(viewsets.ModelViewSet):
         return Response({
             email_obj.message #Esto deberia mostrar un texto diciendo si la url es valida o no
         })
-    
-    
+      
 class PhoneViewSet(viewsets.ModelViewSet):
     queryset = Phone.objects.all()
     serializer_class = PhoneSerializer
@@ -115,9 +113,9 @@ class PhoneViewSet(viewsets.ModelViewSet):
         is_error = ""
         
         if is_valid:
-            status_message = "el telefono es seguro"
+            status_message = "El telefono es seguro"
         else:
-            status_message = "el telefono no es seguro"
+            status_message = "El telefono no es seguro"
             
         is_error = validation_message.lower()
         if is_error == "ha ocurrido un error y no se ha podido verificar el número de teléfono":
@@ -134,8 +132,7 @@ class PhoneViewSet(viewsets.ModelViewSet):
         return Response({
             phone_obj.message #Esto deberia mostrar un texto diciendo si la url es valida o no
         })
- 
-       
+   
 class SmsViewSet(viewsets.ModelViewSet):
     queryset = Sms.objects.all()
     serializer_class = SmsSerializer

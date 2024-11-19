@@ -4,8 +4,35 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 
 ## Estructura del Proyecto
 
-.env .gitignore build.sh db.sqlite3 docker-compose.yml Dockerfile drf/ init.py asgi.py settings.py urls.py wsgi.py manage.py requirements.txt verifier/ init.py admin.py apps.py migrations/ models.py serializers.py tests.py urls.py validators.py views.py
-
+```
+└── 📁drf
+    └── 📁drf
+        └── 📁__pycache__
+        └── __init__.py
+        └── asgi.py
+        └── settings.py
+        └── urls.py
+        └── wsgi.py
+    └── 📁verifier
+        └── 📁__pycache__
+        └── 📁migrations
+        └── __init__.py
+        └── admin.py
+        └── apps.py
+        └── models.py
+        └── serializers.py
+        └── tests.py
+        └── urls.py
+        └── validators.py
+        └── views.py
+    └── .gitignore
+    └── build.sh
+    └── docker-compose.yml
+    └── Dockerfile
+    └── manage.py
+    └── readme.md
+    └── requirements.txt
+```
 
 ## Requisitos
 
@@ -20,17 +47,9 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 
     ```sh
     git clone https://github.com/tu-usuario/verificador-seguridad.git
-    cd verificador-seguridad
     ```
 
-2. Crea y activa un entorno virtual:
-
-    ```sh
-    python -m venv venv
-    source venv/bin/activate  # En Windows usa `venv\Scripts\activate`
-    ```
-
-3. Instala las dependencias:
+2. Instala las dependencias:
 
     ```sh
     pip install -r requirements.txt
@@ -45,7 +64,6 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
     NEUTRINO_PHONE=https://neutrinoapi.net/phone-validate
     NEUTRINO_API_KEY=tu_api_key
     NEUTRINO_USER_ID=tu_usuario
-    SECRET_KEY_SETTINGS=tu_secret_key
     ```
 
 5. Realiza las migraciones de la base de datos:
