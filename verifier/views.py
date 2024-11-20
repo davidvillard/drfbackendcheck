@@ -38,6 +38,10 @@ class UrlViewSet(viewsets.ModelViewSet):
         if is_error_id:
             status_message = 'Ha ocurrido un error y no se ha podido verificar la URL'
             
+        is_error_limit = 'limite de llamadas a la api alcanzado' in validation_message.lower()
+        if is_error_limit:
+            status_message = 'Limite de llamadas a la API alcanzado'
+            
             
         url_obj = Url.objects.create(
             nombre_url = user_url,
@@ -80,6 +84,8 @@ class EmailViewSet(viewsets.ModelViewSet):
             status_message = 'Ha ocurrido un error y no se ha podido verificar el email'
         elif is_error == "error en la solicitud a la API":
             status_message = 'Ha ocurrido un error con la solicitud a la API'
+        elif is_error == "limite de llamadas a la api alcanzado":
+            status_message = 'Limite de llamadas a la API alcanzado'
             
         email_obj = Email.objects.create(
             email = user_email,
@@ -122,6 +128,8 @@ class PhoneViewSet(viewsets.ModelViewSet):
             status_message = 'Ha ocurrido un error y no se ha podido verificar el número de teléfono'
         elif is_error == "error en la solicitud a la API":
             status_message = 'Ha ocurrido un error con la solicitud a la API'
+        elif is_error == "limite de llamadas a la api alcanzado":
+            status_message = 'Limite de llamadas a la API alcanzado'
             
         phone_obj = Phone.objects.create(
             phone = user_number,

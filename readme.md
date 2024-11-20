@@ -99,6 +99,16 @@ La API proporciona los siguientes endpoints:
 - `POST /api/verifier/phone/validate/` - Valida un número de teléfono.
 - `POST /api/verifier/sms/validate/` - Valida un mensaje SMS.
 
+
+Límites y Códigos de Error de las APIs
+
+| **API**          | **Límite de Llamadas**                                                                                   | **Códigos de Error**                                                                                                                                                                                                                                   |
+|-------------------|---------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Phone**         | Entre 10 y 50 solicitudes por día, renovadas cada 24 horas.                                             | - **200**: Llamada exitosa.<br>- **400**: Error en la solicitud a la API.<br>- **2**: Límite de llamadas excedido.                                                                                                                                    |
+| **Email**         | Entre 10 y 50 solicitudes por día, renovadas cada 24 horas.                                             | - **200**: Llamada exitosa.<br>- **400**: Error en la solicitud a la API.<br>- **2**: Límite de llamadas excedido.                                                                                                                                    |
+| **URLs (VirusTotal)** | 500 solicitudes por día (renovadas a las 00:00). Máximo de 4 solicitudes por minuto.                  | - **200**: Llamada exitosa.<br>- **400**: Error en la solicitud a la API.<br>- **429**: Límite de llamadas excedido.                                                                                                                                  |
+| **SMS**           | Sin límite de llamadas.                                                                                 | No aplica.                                                                                                                                                                                                                                           |
+
 ## Contribuciones
 
 Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request.

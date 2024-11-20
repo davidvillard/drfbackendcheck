@@ -23,8 +23,10 @@ def verify_url(request, user_url):
     print(f"Respuesta de VirusTotal: {response.status_code}, {response.text}")  # Para ver qué devuelve la API
     
     status_message = ""
-    if response.status_code != 200:
+    if response.status_code == 400:
         status_message = "Error en la solicitud"
+    elif response.status_code == 429:
+        status_message = "Limite de llamadas a la API alcanzado"
     
     # Extraer el ID de análisis del resultado de VirusTotal
     response_data = response.json() # Extraigo el JSON de la respuesta
@@ -49,8 +51,11 @@ def analyse_url(analysis_id, status_message):
     response = requests.get(url, headers=headers) # Hago la solicitud get a la API
     print(f"Respuesta del análisis: {response.status_code}, {response.text}")  # Ver la respuesta completa
     
-    if response.status_code != 200:
-        status_message =  "Error en la solicitud"
+    if response.status_code == 400:
+        status_message = "Error en la solicitud"
+    elif response.status_code == 429:
+        status_message = "Limite de llamadas a la API alcanzado"
+        
     else:
         response_data = response.json() #Recogo el Json de la respuesta
         data = response_data['data'] # Recojo los datos de la respuesta
@@ -87,14 +92,18 @@ def verify_email(request,user_email):
     response = requests.post(url, headers=headers, data=payload) # Hago la solicitud POST a la API
     print(f"Respuesta de la API: {response.status_code}, {response.text}")  # Muestra la respuesta de la API
     
-    if response.status_code != 200:
-        return "Error en la solicitud a la API"
-
     response_data = response.json() # Recojo el JSON de la respuesta
     valid = response_data.get('valid') # Recojo el valor de valid dentro del JSON
+    api_error = response_data.get('api-error')
     smtp_status = response_data.get('smtp-status') # Recojo el valor de smtp-status dentro del JSON
     email = response_data.get('email') # Recojo el valor de domain dentro del JSON
     print(f"Estado del SMTP: {smtp_status}, Validación: {valid}")  # Muestra los valores de 'smtp-status' y 'valid'
+    
+    if response.status_code != 200:
+        if api_error == 2:
+            status_message = "Limite de llamadas a la API alcanzado"
+        else:
+            status_message = "Error en la solicitud a la API" 
     
     if smtp_status == "invalid" and valid == False:
         status_message = "El email no es seguro"
@@ -130,14 +139,19 @@ def verify_phone(request,user_number):
     
     response = requests.post(url, headers=headers, data=payload)
     print(f"Respuesta de la API: {response.status_code}, {response.text}")  # Muestra la respuesta de la API
-    
-    if response.status_code != 200:
-        return "Error en la solicitud a la API"
+
     
     response_data = response.json()
     valid = response_data.get('valid')
+    api_error = response_data.get('api-error')
     international_number = response_data.get('international-number')
-    print(f"Numero internacional: {international_number}, Validación: {valid}")  # Muestra los valores de 'smtp-status' y 'valid'
+    print(f"Numero internacional: {international_number}, Validación: {valid}, Api-Error: {api_error}")  # Muestra los valores de 'smtp-status' y 'valid'
+    
+    if response.status_code != 200:
+        if api_error == 2:
+            status_message = "Limite de llamadas a la API alcanzado"
+        else:
+            status_message = "Error en la solicitud a la API" 
                 
     if valid == True and international_number != "":
         status_message = "El Telefono es seguro"
@@ -145,6 +159,7 @@ def verify_phone(request,user_number):
         status_message = "El Telefono no es seguro" 
     elif valid == False and international_number == "":
         status_message = "Ha ocurrido un error y no se ha podido verificar el número de teléfono"
+
 
     response_data['message'] = status_message
     print(f"Mensaje: {status_message}")  # Muestra los valores de 'smtp-status' y 'valid'
