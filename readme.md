@@ -90,9 +90,7 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 
 5. Una vez desplegado, tu API estará disponible en la URL proporcionada por Render.
 
-## Uso de la API
-
-La API proporciona los siguientes endpoints:
+## La API proporciona los siguientes endpoints:
 
 - `POST /api/verifier/url/validate/` - Valida una URL.
 - `POST /api/verifier/email/validate/` - Valida un correo electrónico.
@@ -100,7 +98,7 @@ La API proporciona los siguientes endpoints:
 - `POST /api/verifier/sms/validate/` - Valida un mensaje SMS.
 
 
-Límites y Códigos de Error de las APIs
+## Límites y Códigos de Error de las APIs
 
 | **API**          | **Límite de Llamadas**                                                                                   | **Códigos de Error**                                                                                                                                                                                                                                   |
 |-------------------|---------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
