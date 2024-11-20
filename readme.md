@@ -1,6 +1,8 @@
 # Verificador de Seguridad
 
 Este es un proyecto de Django que utiliza Django REST Framework para proporcionar una API que verifica la seguridad de URLs, correos electrónicos, números de teléfono y mensajes SMS. El proyecto está configurado para ser desplegado en Render.
+<br>
+<br>
 
 ## Estructura del Proyecto
 
@@ -33,6 +35,8 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
     └── readme.md
     └── requirements.txt
 ```
+<br>
+<br>
 
 ## Requisitos
 
@@ -40,6 +44,8 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 - Django 5.1.3
 - Django REST Framework 3.15.2
 - Render para despliegue
+<br>
+<br>
 
 ## Instalación
 
@@ -77,6 +83,8 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
     ```sh
     python manage.py runserver
     ```
+<br>
+<br>
 
 ## Despliegue en Render
 
@@ -89,6 +97,8 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 4. Render ejecutará automáticamente el archivo `build.sh` para instalar las dependencias y realizar las migraciones.
 
 5. Una vez desplegado, tu API estará disponible en la URL proporcionada por Render.
+<br>
+<br>
 
 ## La API proporciona los siguientes endpoints:
 
@@ -97,6 +107,8 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 - `POST /api/verifier/phone/validate/` - Valida un número de teléfono.
 - `POST /api/verifier/sms/validate/` - Valida un mensaje SMS.
 
+<br>
+<br>
 
 ## Límites y Códigos de Error de las APIs
 
@@ -106,10 +118,12 @@ Este es un proyecto de Django que utiliza Django REST Framework para proporciona
 | **Email**         | Entre 10 y 50 solicitudes por día, renovadas cada 24 horas.                                             | - **200**: Llamada exitosa.<br>- **400**: Error en la solicitud a la API.<br>- **2**: Límite de llamadas excedido.                                                                                                                                    |
 | **URLs (VirusTotal)** | 500 solicitudes por día (renovadas a las 00:00). Máximo de 4 solicitudes por minuto.                  | - **200**: Llamada exitosa.<br>- **400**: Error en la solicitud a la API.<br>- **429**: Límite de llamadas excedido.                                                                                                                                  |
 | **SMS**           | Sin límite de llamadas.                                                                                 | No aplica.                                                                                                                                                                                                                                           |
+<br>
 
 ## Contribuciones
 
 Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request.
+<br>
 
 ## Licencia
 
