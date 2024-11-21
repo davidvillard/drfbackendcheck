@@ -30,9 +30,9 @@ class UrlViewSet(viewsets.ModelViewSet):
         print(f"Mensaje validacion: {validation_message}")
 
         # Verificar si el mensaje indica un error
-        if "Error" in validation_message or "Límite" in validation_message:
-            status_message = validation_message
+        if any(word in validation_message for word in ["Error", "Limite"]):
             is_valid = False
+            status_message = validation_message
 
             return Response({
                 status_message
@@ -50,6 +50,7 @@ class UrlViewSet(viewsets.ModelViewSet):
             return Response({
                 url_obj.message  # Esto muestra un texto diciendo si la url es valida o no
             })
+
 
 class EmailViewSet(viewsets.ModelViewSet):
     queryset = Email.objects.all()
@@ -70,9 +71,9 @@ class EmailViewSet(viewsets.ModelViewSet):
 
         validation_message = verify_email(request, user_email)
 
-        if "Error" or "Limite" or "Ha" in validation_message:
-            status_message = validation_message
+        if any(word in validation_message for word in ["Error", "Limite", "Ha"]):
             is_valid = False
+            status_message = validation_message
 
             return Response({
                 status_message  # Esto deberia mostrar un texto diciendo si la url es valida o no
@@ -90,6 +91,7 @@ class EmailViewSet(viewsets.ModelViewSet):
             return Response({
                 email_obj.message  # Esto deberia mostrar un texto diciendo si la url es valida o no
             })
+
 
 class PhoneViewSet(viewsets.ModelViewSet):
     queryset = Phone.objects.all()
@@ -110,16 +112,17 @@ class PhoneViewSet(viewsets.ModelViewSet):
 
         validation_message = verify_phone(request, user_number)
 
-        if "Error" or "Limite" or "Ha" in validation_message:
-            status_message = validation_message
+        if any(word in validation_message for word in ["Error", "Limite", "Ha"]):
             is_valid = False
-
+            status_message = validation_message
+            print(f"Mensaje view: {status_message}")
             return Response({
                 status_message  # Esto deberia mostrar un texto diciendo si la url es valida o no
             })
         else:
             is_valid = "El telefono es seguro" in validation_message
             status_message = validation_message if is_valid else "El telefono no es seguro"
+            print(f"Mensaje view: {status_message}, Phone: {phone_obj}")
 
             phone_obj = Phone.objects.create(
                 phone=user_number,
@@ -130,6 +133,7 @@ class PhoneViewSet(viewsets.ModelViewSet):
             return Response({
                 phone_obj.message  # Esto deberia mostrar un texto diciendo si la url es valida o no
             })
+
 
 class SmsViewSet(viewsets.ModelViewSet):
     queryset = Sms.objects.all()

@@ -160,107 +160,77 @@ def verify_phone(request, user_number):
 
     response_data = response.json()
     valid = response_data.get('valid')
-    api_error = response_data.get('api-error')
     international_number = response_data.get('international-number')
-    print(f"Numero internacional: {international_number}, Validación: {valid}, Api_Error: {api_error}")  # Muestra los valores de 'smtp-status' y 'valid'
+    print(f"Numero internacional: {international_number}, Validación: {valid}")  # Muestra los valores de 'smtp-status' y 'valid'
 
     if response.status_code != 200:
-        if api_error == 2:
-            status_message = "Limite de llamadas a la API alcanzado"
-        else:
-            status_message = "Error en la solicitud a la API"
+        api_error = response_data.get('api-error')
+        # Si el status code no es 200, muestro el mensaje de error
+        status_message = "Limite de llamadas a la API alcanzado" if api_error == 2 else "Error en la solicitud a la API"
+        print(f"Mensaje de error: {status_message}, api-error: {api_error}")  # Muestra el mensaje de error
+        
+        response_data['message'] = status_message  # Añado el mensaje al JSON
+        print(f"Mensaje: {status_message}")
 
-    if valid == True and international_number != "":
-        status_message = "El telefono es seguro"
-    elif valid == False and international_number != "":
-        status_message = "El telefono no es seguro"
-    elif valid == False and international_number == "":
-        status_message = "Ha ocurrido un error y no se ha podido verificar el número de teléfono"
+        return status_message  # Devuelvo el mensaje diciendo si el email es seguro o no
+    else:
+        if international_number: # Las cadenas no vacias se evaluan como True
+            status_message = "El telefono es seguro" if valid else "El telefono no es seguro"
+        else: # Las cadenas vacias se evaluan como False
+            status_message = "Ha ocurrido un error y no se ha podido verificar el número de teléfono" if not valid else "El telefono no es seguro"
 
-    response_data['message'] = status_message
-    # Muestra los valores de 'smtp-status' y 'valid'
-    print(f"Mensaje: {status_message}")
-    return status_message
+        response_data['message'] = status_message
+        # Muestra los valores de 'smtp-status' y 'valid'
+        print(f"Mensaje: {status_message}")
+        return status_message
 
 
 def verify_sms(request, message_sms):
-    encontradas = False  # Boolenao que es True si encuentra palabras sospechosas
-    # Mensaje que se mostrara como respuesta de si el sms es seguro o no (se añade a la base de datos)
-    status_message = ""
-    # Booleano que es True si el sms es seguro (se añade a la base de datos)
-    valido = False
+    # Definir palabras sospechosas
     suspicious_words = {'gratis', 'ganaste', 'premio', 'oferta', 'cuenta', 'pago',
-                        'urgente', 'reembolso', 'reclamarlo', 'dinero', 'paga'}  # Palabras sospechosas
+                        'urgente', 'reembolso', 'reclamarlo', 'dinero', 'paga'}
+    # Buscar URL en el mensaje
+    http_position = message_sms.lower().find("http")
+    presunta_url = message_sms[http_position:].split()[0].strip() if http_position != -1 else ""
 
-    # Buscar la posición de la URL
-    http_position = message_sms.lower().find(
-        "http")  # Busca en el mensaje la palabra http
+    # Limpiar y dividir el mensaje
+    message_sms_clean = message_sms.translate(str.maketrans('', '', string.punctuation)).lower()
+    message_words = message_sms_clean.split()
 
-    if http_position != -1:  # Si se encuentra http
-        # Buscamos la posición final de la URL (hasta que encuentre un espacio)
-        posicion_final = message_sms.find(" ", http_position)
-        if posicion_final == -1:  # Si no encuentra un espacio, entonces la URL es la última palabra
-            # Obtiene la URL hasta el final de la frase y quitamos espacios vacios
-            presunta_url = message_sms[http_position:].strip()
-        else:  # Si encuentra un espacio
-            # Obtiene la URL hasta el espacio encontrado y quitamos espacios vacios
-            presunta_url = message_sms[http_position:posicion_final].strip()
+    # Verificar palabras sospechosas
+    encontradas = any(word in suspicious_words for word in message_words)
 
-        # Coger el mensaje antes de http y quitarle los espacios vacios
-        message_partition = message_sms.partition("http")[0].strip()
-    else:  # Si no encuentra http
-        presunta_url = ""  # No hay URL
-        # Recogemos el mensaje en una variable para dividirla en palabras y buscar las sospechosas
-        message_partition = message_sms
-
-    # Limpio el mensaje quitandole los signos de puntuacion y pasandolo a minusculas (con maketrans creo como un diccionario de los signos de puntuacion a eliminar, y transalte lo que hace es eliminarlos de la frase cuando los encuentra)
-    message_sms_clean = message_partition.translate(
-        str.maketrans('', '', string.punctuation)).lower()
-
-    message_words = message_sms_clean.split()  # Dividimos el mensaje en palabras
-
-    # Verificar si alguna palabra es sospechosa
-    for palabra in message_words:  # Por cada palabra en el mensaje
-        if palabra in suspicious_words:  # Si la palabra esta en la lista de palabras sospechosas
-            encontradas = True  # Cambiamos el valor de encontradas a True
-            break  # No es necesario seguir buscando si ya encontramos una palabra sospechosa
-
-    # Si encontramos palabras sospechosas y hay una URL
-    if encontradas and presunta_url:
-        # Recogemos el mensaje de la funcion de validacion de la url
+    # Si hay URL
+    if presunta_url:
         url_validation_message = verify_url(request, presunta_url)
-        # Si el mensaje es que la url es segura
         url_message = "la url es segura" in url_validation_message.lower()
-
-        if url_message:  # Si la url es segura
-            status_message = "Sms sospechoso"
-            valido = False
-        elif not url_message:  # Si la url no es segura
+        
+        # Si tiene palabras sospechosas o la URL es sospechosa => Sms fraudulento
+        if encontradas and not url_message:
             status_message = "Sms fraudulento"
-            valido = False
-        return status_message, valido  # Retornamos el mensaje y si es valido o no
-
-    # Si no hay palabras sospechosas pero hay URL
-    elif not encontradas and presunta_url:
-        # Recogemos el mensaje de la funcion de validacion de la url
-        url_validation_message = verify_url(request, presunta_url)
-        # Si el mensaje es que la url es segura
-        url_message = "la url es segura" in url_validation_message.lower()
-
-        if url_message:  # Si la url es segura
+            is_valid = False
+        # Si no tiene palabras sospechosas y la URL es segura => Sms Sospechoso
+        elif encontradas and url_message:
+            status_message = "Sms Sospechoso"
+            is_valid = False
+        # Si no tiene palabras sospechosas y la URL es segura => Sms seguro
+        elif not encontradas and url_message:
             status_message = "Sms seguro"
-            valido = True
-        else:  # Si la url no es segura
+            is_valid = True
+        # Si no tiene palabras sospechosas y la URL es sospechosa => Sms fraudulento
+        elif not encontradas and not url_message:
             status_message = "Sms fraudulento"
-            valido = False
-        return status_message, valido  # Retornamos el mensaje y si es valido o no
-
-    # Si no se encuentra ninguna palabra sospechosa ni URL
-    if not encontradas:
-        status_message = "Sms seguro (final)"
-        valido = True
-    else:  # Si se encuentra palabra sospechosa pero no hay URL
-        status_message = "Sms sospechoso"
-        valido = False
-
-    return status_message, valido  # Retornamos el mensaje y si es valido o no
+            is_valid = False
+    else:
+        # Si no hay URL, solo se evalúan las palabras sospechosas
+        if encontradas:
+            status_message = "Sms sospechoso"
+            is_valid = False
+        else:
+            status_message = "Sms seguro (final)"
+            is_valid = True
+    
+    print("Mensaje final:", status_message)
+    print("Estado final (is_valid):", is_valid)
+    
+    return status_message, is_valid
