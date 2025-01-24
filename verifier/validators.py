@@ -1,9 +1,14 @@
-from django.shortcuts import render
-from django.http import JsonResponse
 import requests
 import os
+import json
 import string
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
 from dotenv import load_dotenv
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import permission_classes, authentication_classes
 
 load_dotenv()
 
@@ -43,6 +48,34 @@ def verify_url(request, user_url):
     # Llamar a la función de análisis con el ID
     # Llamo a la funcion de analisis pasandole el id para saber si es segura la url o no
     return analyse_url(analysis_id, status_message)
+
+
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def verify_phone(request, user_number):
+     url = os.getenv("NEUTRINO_PHONE")
+
+     response_data = {
+         'api-error': 2,
+         'valid': None,
+         'international-number': None,
+     }
+     
+     if response_data.get('api-error') == 2:
+         status_message = "Limite de llamadas a la API alcanzado"
+         print(f"Mensaje de error: {status_message}")
+
+         user_email = request.user.email
+         if not user_email:
+             return Response({"message": "El usuario autenticado no tiene un email válido"}, status=400)
+
+         # Lógica de verificación
+         send_email(
+             subject="Límite de API alcanzado",
+             message="Se ha alcanzado el límite de llamadas a la API para la verificación de teléfonos.",
+             to_email=user_email
+         )
+         return Response({"message": "Correo enviado correctamente"}, status=200)
 
 
 def analyse_url(analysis_id, status_message):
@@ -117,16 +150,17 @@ def verify_email(request, user_email):
         api_error = response_data.get('api-error')
         # Si el status code no es 200, muestro el mensaje de error
         status_message = "Limite de llamadas a la API alcanzado" if api_error == 2 else "Error en la solicitud a la API"
-        print(f"Mensaje de error: {status_message}, api-error: {api_error}")  # Muestra el mensaje de error
-        
+        # Muestra el mensaje de error
+        print(f"Mensaje de error: {status_message}, api-error: {api_error}")
+
         response_data['message'] = status_message  # Añado el mensaje al JSON
         # Muestra los valores de 'smtp-status' y 'valid'
         print(f"Mensaje: {status_message}")
 
         return status_message  # Devuelvo el mensaje diciendo si el email es seguro o no
-    
+
     else:
-        
+
         if smtp_status == "invalid" or valid == False:
             status_message = "El email no es seguro"
         else:
@@ -141,48 +175,68 @@ def verify_email(request, user_email):
         return status_message  # Devuelvo el mensaje diciendo si el email es seguro o no
 
 
-def verify_phone(request, user_number):
-    url = os.getenv("NEUTRINO_PHONE")  # URL de la API
-    headers = {
-        'User-ID': os.getenv("NEUTRINO_USER_ID"),
-        'API-Key': os.getenv("NEUTRINO_API_KEY"),
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-    payload = {  # Parametros que le pasamos a la API
-        'number': user_number,
-        'country-code': '',
-        'ip': '',
-    }
+# @authentication_classes([SessionAuthentication])
+# @permission_classes([IsAuthenticated])
+# def verify_phone(request, user_number):
+#     url = os.getenv("NEUTRINO_PHONE")  # URL de la API
+#     headers = {
+#         'User-ID': os.getenv("NEUTRINO_USER_ID"),
+#         'API-Key': os.getenv("NEUTRINO_API_KEY"),
+#         'Content-Type': 'application/x-www-form-urlencoded',
+#     }
+#     payload = {  # Parametros que le pasamos a la API
+#         'number': user_number,
+#         'country-code': '',
+#         'ip': '',
+#     }
 
-    response = requests.post(url, headers=headers, data=payload)
-    print(f"Respuesta de la API: {response.status_code}, {
-          response.text}")  # Muestra la respuesta de la API
+#     response = requests.post(url, headers=headers, data=payload)
+#     print(f"Respuesta de la API: {response.status_code}, {
+#           response.text}")  # Muestra la respuesta de la API
 
-    response_data = response.json()
-    valid = response_data.get('valid')
-    international_number = response_data.get('international-number')
-    print(f"Numero internacional: {international_number}, Validación: {valid}")  # Muestra los valores de 'smtp-status' y 'valid'
+#     response_data = response.json()
+#     valid = response_data.get('valid')
+#     international_number = response_data.get('international-number')
+#     print(f"Numero internacional: {international_number}, Validación: {
+#           valid}")  # Muestra los valores de 'smtp-status' y 'valid'
 
-    if response.status_code != 200:
-        api_error = response_data.get('api-error')
-        # Si el status code no es 200, muestro el mensaje de error
-        status_message = "Limite de llamadas a la API alcanzado" if api_error == 2 else "Error en la solicitud a la API"
-        print(f"Mensaje de error: {status_message}, api-error: {api_error}")  # Muestra el mensaje de error
-        
-        response_data['message'] = status_message  # Añado el mensaje al JSON
-        print(f"Mensaje: {status_message}")
+#     if response.status_code != 200:
+#         api_error = response_data.get('api-error')
+#         # Si el status code no es 200, muestro el mensaje de error
+#         status_message = "Limite de llamadas a la API alcanzado" if api_error == 2 else "Error en la solicitud a la API"
+#         # Muestra el mensaje de error
+#         print(f"Mensaje de error: {status_message}, api-error: {api_error}")
 
-        return status_message  # Devuelvo el mensaje diciendo si el email es seguro o no
-    else:
-        if international_number: # Las cadenas no vacias se evaluan como True
-            status_message = "El telefono es seguro" if valid else "El telefono no es seguro"
-        else: # Las cadenas vacias se evaluan como False
-            status_message = "Ha ocurrido un error y no se ha podido verificar el número de teléfono" if not valid else "El telefono no es seguro"
+#         response_data['message'] = status_message  # Añado el mensaje al JSON
+#         print(f"Mensaje: {status_message}")
 
-        response_data['message'] = status_message
-        # Muestra los valores de 'smtp-status' y 'valid'
-        print(f"Mensaje: {status_message}")
-        return status_message
+#         # Enviar el correo si el límite de llamadas ha sido alcanzado
+#         if api_error == 2:
+#             status_message = "Limite de llamadas a la API alcanzado"
+#             print(f"Mensaje de error: {status_message}")
+
+#             user_email = request.user.email
+#             if not user_email:
+#                 return Response({"message": "El usuario autenticado no tiene un email válido"}, status=400)
+
+#             # Lógica de verificación
+#             send_email(
+#                 subject="Límite de API alcanzado",
+#                 message="Se ha alcanzado el límite de llamadas a la API para la verificación de teléfonos.",
+#                 to_email=user_email
+#             )
+
+#         return status_message  # Devuelvo el mensaje diciendo si el email es seguro o no
+#     else:
+#         if international_number:  # Las cadenas no vacias se evaluan como True
+#             status_message = "El telefono es seguro" if valid else "El telefono no es seguro"
+#         else:  # Las cadenas vacias se evaluan como False
+#             status_message = "Ha ocurrido un error y no se ha podido verificar el número de teléfono" if not valid else "El telefono no es seguro"
+
+#         response_data['message'] = status_message
+#         # Muestra los valores de 'smtp-status' y 'valid'
+#         print(f"Mensaje: {status_message}")
+#         return status_message
 
 
 def verify_sms(request, message_sms):
@@ -191,46 +245,48 @@ def verify_sms(request, message_sms):
                         'urgente', 'reembolso', 'reclamarlo', 'dinero', 'paga'}
     # Buscar URL en el mensaje
     http_position = message_sms.lower().find("http")
-    presunta_url = message_sms[http_position:].split()[0].strip() if http_position != -1 else ""
+    presunta_url = message_sms[http_position:].split(
+    )[0].strip() if http_position != -1 else ""
 
     # Limpiar y dividir el mensaje
-    message_sms_clean = message_sms.translate(str.maketrans('', '', string.punctuation)).lower()
+    message_sms_clean = message_sms.translate(
+        str.maketrans('', '', string.punctuation)).lower()
     message_words = message_sms_clean.split()
 
     # Verificar palabras sospechosas
     encontradas = any(word in suspicious_words for word in message_words)
 
-    # Si hay URL
     if presunta_url:
         url_validation_message = verify_url(request, presunta_url)
         url_message = "la url es segura" in url_validation_message.lower()
-        
-        # Si tiene palabras sospechosas o la URL es sospechosa => Sms fraudulento
-        if encontradas and not url_message:
-            status_message = "Sms fraudulento"
-            is_valid = False
-        # Si no tiene palabras sospechosas y la URL es segura => Sms Sospechoso
-        elif encontradas and url_message:
-            status_message = "Sms Sospechoso"
-            is_valid = False
-        # Si no tiene palabras sospechosas y la URL es segura => Sms seguro
-        elif not encontradas and url_message:
-            status_message = "Sms seguro"
-            is_valid = True
-        # Si no tiene palabras sospechosas y la URL es sospechosa => Sms fraudulento
-        elif not encontradas and not url_message:
-            status_message = "Sms fraudulento"
-            is_valid = False
+        # Satatus_message y is_valid van a coger el valor que le devuelva la funcion verify_status_sms: ("Sms fraudulento", False)...
+        status_message, is_valid = verify_status_sms_with_url(
+            encontradas, url_message)
     else:
-        # Si no hay URL, solo se evalúan las palabras sospechosas
         if encontradas:
             status_message = "Sms sospechoso"
             is_valid = False
         else:
             status_message = "Sms seguro (final)"
             is_valid = True
-    
+
     print("Mensaje final:", status_message)
     print("Estado final (is_valid):", is_valid)
-    
+
     return status_message, is_valid
+
+
+def verify_status_sms_with_url(encontradas, url_message):
+    estado = {
+        (True, False): ("Sms fraudulento", False),
+        (True, True): ("Sms sospechoso", False),
+        (False, True): ("Sms seguro", True),
+        (False, False): ("Sms fraudulento", False)
+    }
+
+    return estado[(encontradas, url_message)]
+
+
+def send_email(subject, message, to_email):
+    from_email = None
+    send_mail(subject, message, from_email, [to_email])

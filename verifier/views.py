@@ -1,7 +1,6 @@
 from .models import Url, Email, Phone, Sms
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import JsonResponse
 from rest_framework import viewsets
 from .serializers import UrlSerializer, EmailSerializer, PhoneSerializer, SmsSerializer
 from .validators import verify_url, verify_email, verify_phone, verify_sms
@@ -117,7 +116,7 @@ class PhoneViewSet(viewsets.ModelViewSet):
             status_message = validation_message
             print(f"Mensaje view: {status_message}")
             return Response({
-                status_message  # Esto deberia mostrar un texto diciendo si la url es valida o no
+                status_message  # Esto deberia mostrar un texto diciendo si el telefono es valida o no
             })
         else:
             is_valid = "El telefono es seguro" in validation_message
