@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'verifier'
+    'rest_framework.authtoken',
+    'verifier',
+    'email_service',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,25 @@ if not DEBUG:
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Servidor Correo
+DEAFULT_FROM_EMAIL = "davidvillard6@gmail.com"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = DEAFULT_FROM_EMAIL
+EMAIL_HOST_PASSWORD = 'sdsj ucvm kdln cifs'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+CSRF_COOKIE_SECURE = False  # Solo para pruebas locales (en producción debería ser True)
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']  # Asegúrate de que localhost esté permitido
